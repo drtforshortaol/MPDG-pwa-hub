@@ -36,18 +36,24 @@
           <label>Date <input id="planDate" type="date"></label>
           <label>Plan option <select id="planSelect"></select></label>
           <label>Plan title <input id="planTitle" placeholder="Option A: Ideal / comprehensive"></label>
+          <label>Phase / sequence group
+            <select id="phaseSelect">
+              <option>Phase 1 - Urgent / disease control</option>
+              <option>Phase 2 - Definitive restorative</option>
+              <option>Phase 3 - Replacement / prosthetic</option>
+              <option>Phase 4 - Maintenance / recall</option>
+              <option>Alternative / optional</option>
+              <option>Monitor</option>
+              <option>Referral</option>
+            </select>
+          </label>
         </div>
+        <div class="minihelp">Choose the phase/sequence group before adding procedures. Each phase will print with its own subtotal, followed by the grand total.</div>
         <div class="buttonrow no-print">
           <button id="newPlan">New alternative</button>
           <button id="duplicatePlan">Duplicate current</button>
           <button id="deletePlan" class="danger">Delete current</button>
         </div>
-      </section>
-
-      <section class="panel totals">
-        <h2>Subtotals</h2>
-        <div id="totalLine" class="grand">$0.00</div>
-        <div id="subtotalBox"></div>
       </section>
     </div>
 
@@ -82,7 +88,7 @@
     </section>
 
     <section class="panel no-print">
-      <h2>3. Add procedure</h2>
+      <h2>3. Select procedure and details</h2>
       <div class="fields addproc">
         <label>Category
           <select id="categorySelect"></select>
@@ -96,17 +102,6 @@
         <div id="selectedProcedureSummary" class="selected-procedure">No procedure selected yet.</div>
         <label>Search all procedures
           <input id="codeSearch" placeholder="crown, D2740, implant, SRP… searches all active procedures">
-        </label>
-        <label>Phase / sequence group
-          <select id="phaseSelect">
-            <option>Phase 1 - Urgent / disease control</option>
-            <option>Phase 2 - Definitive restorative</option>
-            <option>Phase 3 - Replacement / prosthetic</option>
-            <option>Phase 4 - Maintenance / recall</option>
-            <option>Alternative / optional</option>
-            <option>Monitor</option>
-            <option>Referral</option>
-          </select>
         </label>
         <label>Fee override <input id="feeOverride" type="number" min="0" step="0.01" placeholder="optional"></label>
         <label>Reason for treatment

@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
 const activeCodes = SERVICE_CODES.filter(c => c.status === 'Active' && !/do not use/i.test(c.description || ''));
-const stateKey = 'dentalTreatmentPlanner.v5';
+const stateKey = 'dentalTreatmentPlanner.v6';
 let state = loadState();
 let selectedTeeth = [];
 let selectedSurfaces = [];
@@ -208,8 +208,8 @@ function bind(){
   $('addProcedure').onclick = () => addProcedure(false);
   $('addMonitor').onclick = () => addProcedure(true);
   $('clearEntry').onclick = clearEntryChoices;
-  $('printPlan').onclick = () => window.print();
-  if ($('printComparison')) $('printComparison').onclick = () => { document.querySelector('[data-tab="compare"]').click(); setTimeout(() => window.print(), 50); };
+  $('printPlan').onclick = () => { document.body.classList.remove('printing-compare'); window.print(); };
+  if ($('printComparison')) $('printComparison').onclick = () => { document.body.classList.add('printing-compare'); document.querySelector('[data-tab="compare"]').click(); setTimeout(() => { window.print(); setTimeout(() => document.body.classList.remove('printing-compare'), 500); }, 50); };
   $('exportJson').onclick = exportJson;
   $('clearAll').onclick = () => { if(confirm('Erase all local treatment plans in this app?')){ localStorage.removeItem(stateKey); state = defaultState(); location.reload(); } };
   ['lookupQ','lookupType','lookupStatus'].forEach(id => $(id).addEventListener('input', renderLookup));
@@ -267,18 +267,38 @@ function renderPlans(){
   state.plans.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = `${p.id} - ${p.title}`; sel.appendChild(o); });
   sel.value = state.currentPlanId; $('planTitle').value = currentPlan().title; $('patientName').value = state.patientName; $('planDate').value = state.planDate;
 }
+function phaseGroups(items){
+  const groups = [];
+  items.slice().sort((a,b) => a.seq - b.seq).forEach(item => {
+    let group = groups.find(g => g.phase === item.phase);
+    if (!group){ group = {phase:item.phase || 'Unassigned phase', items:[], subtotal:0}; groups.push(group); }
+    group.items.push(item);
+    group.subtotal += Number(item.fee || 0);
+  });
+  return groups;
+}
 function renderTotals(){
-  const items = currentPlan().items; const total = items.reduce((s,i) => s + Number(i.fee || 0), 0); $('totalLine').textContent = money(total); $('printTotal').textContent = money(total);
-  const byPhase = {}; items.forEach(i => byPhase[i.phase] = (byPhase[i.phase] || 0) + Number(i.fee || 0));
-  $('subtotalBox').innerHTML = Object.entries(byPhase).map(([k,v]) => `<div class="subtotal"><span>${k}</span><b>${money(v)}</b></div>`).join('') || '<div class="muted">No procedures yet.</div>';
+  const items = currentPlan().items;
+  const total = items.reduce((s,i) => s + Number(i.fee || 0), 0);
+  if ($('printTotal')) $('printTotal').textContent = money(total);
 }
 function renderTable(){
-  const cp = currentPlan(); $('printPlanTitle').textContent = cp.title || 'Treatment Plan'; $('printPatientLine').textContent = `${state.patientName || 'Patient'} • ${state.planDate || ''}`;
-  const rows = cp.items.sort((a,b) => a.seq - b.seq).map(i => `<tr><td class="seqcell">${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}<br><span class="muted">${i.serviceType || ''}</span></td><td>${i.reason || ''}${i.crownReason ? `<br><b>Crown:</b> ${i.crownReason}` : ''}${i.referral ? `<br><b>Referral:</b> ${i.referral}` : ''}${i.notes ? `<br><span class="muted">${i.notes}</span>` : ''}</td><td class="money">${money(i.fee)}</td><td class="row-actions no-print"><button onclick="moveItem('${i.id}',-1)">↑</button><button onclick="moveItem('${i.id}',1)">↓</button><button onclick="removeItem('${i.id}')">×</button></td></tr>`).join('');
-  $('planTableWrap').innerHTML = `<div class="tablewrap"><table><thead><tr><th>Seq</th><th>Phase</th><th>Tooth</th><th>Surf</th><th>Code</th><th>Procedure</th><th>Reason / notes</th><th class="money">Fee</th><th class="no-print"></th></tr></thead><tbody>${rows || '<tr><td colspan="9" class="muted">No procedures added yet.</td></tr>'}</tbody></table></div>`;
+  const cp = currentPlan();
+  $('printPlanTitle').textContent = cp.title || 'Treatment Plan';
+  $('printPatientLine').textContent = `${state.patientName || 'Patient'} • ${state.planDate || ''}`;
+  const groups = phaseGroups(cp.items);
+  const grand = cp.items.reduce((s,i) => s + Number(i.fee || 0), 0);
+  if (!groups.length){
+    $('planTableWrap').innerHTML = `<div class="tablewrap"><table><thead><tr><th>Seq</th><th>Phase</th><th>Tooth</th><th>Surf</th><th>Code</th><th>Procedure</th><th>Reason / notes</th><th class="money">Fee</th><th class="no-print"></th></tr></thead><tbody><tr><td colspan="9" class="muted">No procedures added yet.</td></tr></tbody></table></div>`;
+    return;
+  }
+  const body = groups.map(group => {
+    const rows = group.items.map(i => `<tr><td class="seqcell">${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}<br><span class="muted">${i.serviceType || ''}</span></td><td>${i.reason || ''}${i.crownReason ? `<br><b>Crown:</b> ${i.crownReason}` : ''}${i.referral ? `<br><b>Referral:</b> ${i.referral}` : ''}${i.notes ? `<br><span class="muted">${i.notes}</span>` : ''}</td><td class="money">${money(i.fee)}</td><td class="row-actions no-print"><button onclick="moveItem('${i.id}',-1)">↑</button><button onclick="moveItem('${i.id}',1)">↓</button><button onclick="removeItem('${i.id}')">×</button></td></tr>`).join('');
+    return `<tr class="phase-heading"><th colspan="9">${group.phase}</th></tr>${rows}<tr class="phase-subtotal"><td colspan="7"><b>${group.phase} subtotal</b></td><td class="money"><b>${money(group.subtotal)}</b></td><td class="no-print"></td></tr>`;
+  }).join('');
+  const grandRow = `<tr class="grand-total-row"><td colspan="7"><b>Grand total</b></td><td class="money"><b>${money(grand)}</b></td><td class="no-print"></td></tr>`;
+  $('planTableWrap').innerHTML = `<div class="tablewrap"><table><thead><tr><th>Seq</th><th>Phase</th><th>Tooth</th><th>Surf</th><th>Code</th><th>Procedure</th><th>Reason / notes</th><th class="money">Fee</th><th class="no-print"></th></tr></thead><tbody>${body}${grandRow}</tbody></table></div>`;
 }
-window.moveItem = (id, delta) => { const items = currentPlan().items; const idx = items.findIndex(i => i.id === id); const ni = idx + delta; if(ni < 0 || ni >= items.length) return; [items[idx],items[ni]] = [items[ni],items[idx]]; items.forEach((i,n) => i.seq = n + 1); save(); renderAll(); };
-window.removeItem = id => { currentPlan().items = currentPlan().items.filter(i => i.id !== id).map((i,n) => ({...i, seq:n+1})); save(); renderAll(); };
 function renderLookup(){
   const q = $('lookupQ').value.toLowerCase(), type = $('lookupType').value, status = $('lookupStatus').value;
   const rows = SERVICE_CODES.filter(c => (!type || c.serviceType === type) && (!status || c.status === status) && (!q || [c.adaCode,c.serviceCode,c.displayAbbr,c.description,c.serviceType,categoryFor(c),subcategoryFor(c)].join(' ').toLowerCase().includes(q))).slice(0,150);
