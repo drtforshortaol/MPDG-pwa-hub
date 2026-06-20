@@ -1,0 +1,9 @@
+Code,Procedure,Category,Subcategory,DefaultFee,Notes
+D0120,Periodic oral evaluation,Diagnostic,Exams,0,Starter placeholder fee
+D0150,Comprehensive oral evaluation,Diagnostic,Exams,0,Starter placeholder fee
+D1110,Adult prophylaxis,Preventive,Cleanings,0,Starter placeholder fee
+D2391,Resin composite - one surface posterior,Restorative,Composite,0,Starter placeholder fee
+D2392,Resin composite - two surfaces posterior,Restorative,Composite,0,Starter placeholder fee
+D2740,Crown - porcelain ceramic,Fixed Prosthodontics,Crowns,0,Starter placeholder fee
+D2950,Core buildup,Restorative,Foundations,0,Starter placeholder fee
+D7210,Surgical removal of erupted tooth,Oral Surgery,Extractions,0,Starter placeholder fee
