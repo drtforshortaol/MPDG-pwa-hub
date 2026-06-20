@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MPDG Treatment Planner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <a href="../../index.html" class="back">← Hub</a>
+    <h1>Treatment Planner</h1>
+    <p>Monterey Peninsula Dental Group · Dr. Glenn A. Takenaga DDS, MSc</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>1. Select teeth</h2>
+      <div class="tooth-groups">
+        <button data-group="1-8">Upper Right 1–8</button>
+        <button data-group="9-16">Upper Left 9–16</button>
+        <button data-group="24-17">Lower Left 24–17</button>
+        <button data-group="32-25">Lower Right 32–25</button>
+      </div>
+      <div id="teeth" class="teeth"></div>
+    </section>
+
+    <section class="panel">
+      <h2>2. Surfaces</h2>
+      <div class="surface-buttons">
+        <button data-surface="M">M</button>
+        <button data-surface="O">O</button>
+        <button data-surface="D">D</button>
+        <button data-surface="B">B</button>
+        <button data-surface="L">L</button>
+        <button data-surface="F">F</button>
+        <button data-surface="I">I</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>3. Add procedure</h2>
+      <input id="procedureSearch" type="search" placeholder="Search procedures, codes, categories..." />
+      <select id="procedureSelect"></select>
+      <button id="addProcedure" class="primary">Add Procedure</button>
+      <button id="clearChoices">Clear Choices</button>
+    </section>
+
+    <section class="panel">
+      <h2>Current treatment plan</h2>
+      <table>
+        <thead><tr><th>Tooth</th><th>Surface</th><th>Code</th><th>Procedure</th><th>Fee</th></tr></thead>
+        <tbody id="planRows"></tbody>
+      </table>
+      <h3 id="subtotal">Subtotal: $0</h3>
+      <button onclick="window.print()">Print Treatment Plan</button>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
