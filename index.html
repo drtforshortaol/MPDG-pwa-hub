@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MPDG PWA Hub</title>
+  <meta name="theme-color" content="#0f4c5c" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    :root { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #102027; background: #f5f7f8; }
+    body { margin: 0; }
+    header { background: #0f4c5c; color: white; padding: 1.25rem; }
+    main { padding: 1rem; max-width: 900px; margin: 0 auto; }
+    .card { background: white; border-radius: 16px; padding: 1rem; margin: 1rem 0; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    a.button { display: block; text-decoration: none; background: #0f4c5c; color: white; padding: 1rem; border-radius: 12px; text-align: center; font-weight: 700; }
+    .muted { color: #52636a; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Monterey Peninsula Dental Group</h1>
+    <p>Dr. Glenn A. Takenaga DDS, MSc</p>
+    <p>333 El Dorado Street, Monterey, CA 93940 · 831-373-3068</p>
+  </header>
+  <main>
+    <section class="card">
+      <h2>MPDG PWA Hub</h2>
+      <p class="muted">Starter hub for dental treatment-planning and office workflow apps.</p>
+    </section>
+
+    <section class="card">
+      <h2>Treatment Planner</h2>
+      <p>Create dental treatment plans with tooth numbers, surfaces, procedures, fees, subtotals, alternatives, and print formatting.</p>
+      <a class="button" href="apps/treatment-planner/">Open Treatment Planner</a>
+    </section>
+  </main>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./service-worker.js');
+    }
+  </script>
+</body>
+</html>
