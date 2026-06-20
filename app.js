@@ -299,6 +299,41 @@ function renderTable(){
   const grandRow = `<tr class="grand-total-row"><td colspan="7"><b>Grand total</b></td><td class="money"><b>${money(grand)}</b></td><td class="no-print"></td></tr>`;
   $('planTableWrap').innerHTML = `<div class="tablewrap"><table><thead><tr><th>Seq</th><th>Phase</th><th>Tooth</th><th>Surf</th><th>Code</th><th>Procedure</th><th>Reason / notes</th><th class="money">Fee</th><th class="no-print"></th></tr></thead><tbody>${body}${grandRow}</tbody></table></div>`;
 }
+
+function resequenceItems(plan){
+  plan.items
+    .sort((a,b) => Number(a.seq || 0) - Number(b.seq || 0))
+    .forEach((item, idx) => { item.seq = idx + 1; });
+}
+
+function removeItem(id){
+  const cp = currentPlan();
+  const item = cp.items.find(i => i.id === id);
+  if (!item) return;
+  if (!confirm(`Remove this procedure?\n\n${item.adaCode || item.serviceCode} — ${item.description}`)) return;
+  cp.items = cp.items.filter(i => i.id !== id);
+  resequenceItems(cp);
+  save();
+  renderAll();
+}
+
+function moveItem(id, direction){
+  const cp = currentPlan();
+  const ordered = cp.items.slice().sort((a,b) => Number(a.seq || 0) - Number(b.seq || 0));
+  const idx = ordered.findIndex(i => i.id === id);
+  if (idx < 0) return;
+  const newIdx = idx + Number(direction || 0);
+  if (newIdx < 0 || newIdx >= ordered.length) return;
+  [ordered[idx], ordered[newIdx]] = [ordered[newIdx], ordered[idx]];
+  ordered.forEach((item, i) => { item.seq = i + 1; });
+  cp.items = ordered;
+  save();
+  renderAll();
+}
+
+window.removeItem = removeItem;
+window.moveItem = moveItem;
+
 function renderLookup(){
   const q = $('lookupQ').value.toLowerCase(), type = $('lookupType').value, status = $('lookupStatus').value;
   const rows = SERVICE_CODES.filter(c => (!type || c.serviceType === type) && (!status || c.status === status) && (!q || [c.adaCode,c.serviceCode,c.displayAbbr,c.description,c.serviceType,categoryFor(c),subcategoryFor(c)].join(' ').toLowerCase().includes(q))).slice(0,150);
