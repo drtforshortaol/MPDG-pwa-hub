@@ -9,8 +9,8 @@ window.MPDG_APPS = [
       {
         title: "Treatment Plan Dropdown App",
         subtitle: "Codes, teeth, phases, subtotals, and grand total.",
-        status: "In progress",
-        url: "#",
+        status: "Active starter app",
+        url: "treatment-planner.html",
         tags: ["treatment plan", "CDT", "fees", "phases"]
       },
       {
