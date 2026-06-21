@@ -227,7 +227,7 @@ function parseRange(text){
 function clearEntryChoices(){
   selectedTeeth = []; selectedSurfaces = []; selectedNonTooth = false;
   $('categorySelect').value = ''; refreshSubcategories(); $('subcategorySelect').value = ''; $('codeSearch').value = ''; refreshProcedures();
-  $('procedureSelect').value = ''; $('feeOverride').value = ''; $('reasonSelect').value = ''; $('crownReasonSelect').value = ''; $('referralSelect').value = ''; $('notes').value = '';
+  $('procedureSelect').value = ''; $('feeOverride').value = ''; setMultiValues('reasonSelect', []); setMultiValues('crownReasonSelect', []); $('referralSelect').value = ''; $('notes').value = '';
   renderTeeth(); renderSurfaces(); renderEntryStatus();
 }
 function addProcedure(monitorOnly){
@@ -240,7 +240,7 @@ function addProcedure(monitorOnly){
     id: crypto.randomUUID(), seq: cp.items.length + 1, phase: $('phaseSelect').value,
     tooth: selectedToothText(), surfaces: surfacesText(), adaCode: code.adaCode, serviceCode: code.serviceCode,
     description: code.description, serviceType: code.serviceType, fee: feeOverride === '' ? Number(code.fee || 0) : Number(feeOverride),
-    reason: $('reasonSelect').value, crownReason: $('crownReasonSelect').value, referral: $('referralSelect').value,
+    reason: selectedValues('reasonSelect'), crownReason: selectedValues('crownReasonSelect'), referral: $('referralSelect').value,
     notes: $('notes').value, monitor: monitorOnly || $('phaseSelect').value === 'Monitor'
   };
   cp.items.push(item); save(); clearEntryChoices(); renderAll();
@@ -291,8 +291,8 @@ function editItem(id){
 
   $('phaseSelect').value = item.phase ?? '';
   $('feeOverride').value = Number(item.fee || 0);
-  $('reasonSelect').value = item.reason || '';
-  $('crownReasonSelect').value = item.crownReason || '';
+  setMultiValues('reasonSelect', item.reason || []);
+  setMultiValues('crownReasonSelect', item.crownReason || []);
   $('referralSelect').value = item.referral || '';
   $('notes').value = item.notes || '';
 
@@ -345,8 +345,8 @@ function updateCurrentEdit(){
     description: code.description,
     serviceType: code.serviceType,
     fee: feeOverride === '' ? Number(code.fee || 0) : Number(feeOverride),
-    reason: $('reasonSelect').value,
-    crownReason: $('crownReasonSelect').value,
+    reason: selectedValues('reasonSelect'),
+    crownReason: selectedValues('crownReasonSelect'),
     referral: $('referralSelect').value,
     notes: $('notes').value,
     monitor: code.serviceCode === 'MONITOR' || $('phaseSelect').value === 'Monitor'
@@ -408,7 +408,7 @@ function renderTable(){
     return;
   }
   const body = groups.map(group => {
-    const rows = group.items.map(i => `<tr><td class="seqcell">${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}<br><span class="muted">${i.serviceType || ''}</span></td><td>${i.reason || ''}${i.crownReason ? `<br><b>Crown:</b> ${i.crownReason}` : ''}${i.referral ? `<br><b>Referral:</b> ${i.referral}` : ''}${i.notes ? `<br><span class="muted">${i.notes}</span>` : ''}</td><td class="money">${money(i.fee)}</td><td class="row-actions no-print"><button onclick="editItem('${i.id}')">Edit</button><button onclick="moveItem('${i.id}',-1)">↑</button><button onclick="moveItem('${i.id}',1)">↓</button><button onclick="removeItem('${i.id}')">×</button></td></tr>`).join('');
+    const rows = group.items.map(i => `<tr><td class="seqcell">${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}<br><span class="muted">${i.serviceType || ''}</span></td><td>${detailLines(i)}</td><td class="money">${money(i.fee)}</td><td class="row-actions no-print"><button onclick="editItem('${i.id}')">Edit</button><button onclick="moveItem('${i.id}',-1)">↑</button><button onclick="moveItem('${i.id}',1)">↓</button><button onclick="removeItem('${i.id}')">×</button></td></tr>`).join('');
     return `<tr class="phase-heading"><th colspan="9">${group.phase}</th></tr>${rows}<tr class="phase-subtotal"><td colspan="7"><b>${group.phase} subtotal</b></td><td class="money"><b>${money(group.subtotal)}</b></td><td class="no-print"></td></tr>`;
   }).join('');
   const grandRow = `<tr class="grand-total-row"><td colspan="7"><b>Grand total</b></td><td class="money"><b>${money(grand)}</b></td><td class="no-print"></td></tr>`;
@@ -476,7 +476,7 @@ function renderCompare(){
 
   const detailTables = state.plans.map(p => {
     const total = p.items.reduce((s,i) => s + Number(i.fee || 0),0);
-    const rows = p.items.slice().sort((a,b) => a.seq - b.seq).map(i => `<tr><td>${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}${i.reason ? `<br><span class="muted">Reason: ${i.reason}</span>` : ''}${i.crownReason ? `<br><span class="muted">Crown: ${i.crownReason}</span>` : ''}${i.referral ? `<br><span class="muted">Referral: ${i.referral}</span>` : ''}</td><td class="money">${money(i.fee)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No procedures in this alternative.</td></tr>';
+    const rows = p.items.slice().sort((a,b) => a.seq - b.seq).map(i => `<tr><td>${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}${detailsText(i.reason) ? `<br><span class="muted">Reason: ${detailsText(i.reason)}</span>` : ''}${detailsText(i.crownReason) ? `<br><span class="muted">Crown: ${detailsText(i.crownReason)}</span>` : ''}${i.referral ? `<br><span class="muted">Referral: ${i.referral}</span>` : ''}</td><td class="money">${money(i.fee)}</td></tr>`).join('') || '<tr><td colspan="7" class="muted">No procedures in this alternative.</td></tr>';
     return `<section class="compare-detail"><h3>${p.title} <span>${money(total)}</span></h3><div class="tablewrap"><table><thead><tr><th>Seq</th><th>Phase</th><th>Tooth</th><th>Surf</th><th>Code</th><th>Procedure / reason</th><th class="money">Fee</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="6">Total</th><th class="money">${money(total)}</th></tr></tfoot></table></div></section>`;
   }).join('');
 
@@ -493,7 +493,7 @@ function renderCompare(){
 }
 function renderMonitoring(){
   const items = state.plans.flatMap(p => p.items.map(i => ({...i, plan:p.title}))).filter(i => i.monitor || i.referral || /monitor|watch|observe/i.test(i.notes || ''));
-  $('monitorBox').innerHTML = items.map(i => `<div class="monitor-item"><b>${i.plan}</b> • Tooth ${i.tooth || 'N/A'} • ${i.adaCode} ${i.description}<br>${i.referral ? `Referral: ${i.referral}<br>` : ''}${i.notes || i.reason || ''}</div>`).join('') || '<p class="muted">No monitoring or referral rows yet.</p>';
+  $('monitorBox').innerHTML = items.map(i => `<div class="monitor-item"><b>${i.plan}</b> • Tooth ${i.tooth || 'N/A'} • ${i.adaCode} ${i.description}<br>${i.referral ? `Referral: ${i.referral}<br>` : ''}${i.notes || detailsText(i.reason) || ''}</div>`).join('') || '<p class="muted">No monitoring or referral rows yet.</p>';
 }
 function exportJson(){ const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'treatment-plans.json'; a.click(); }
 function renderAll(){ renderPlans(); renderTeeth(); renderSurfaces(); renderTotals(); renderTable(); renderLookup(); renderCompare(); renderMonitoring(); renderEntryStatus(); }

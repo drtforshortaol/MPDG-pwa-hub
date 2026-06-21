@@ -14,7 +14,7 @@
     <h1>Monterey Peninsula Dental Group</h1>
     <p class="provider-line">Dr. Glenn A. Takenaga DDS, MSc</p>
     <p>333 El Dorado Street, Monterey, CA 93940 • Phone 831-373-3068</p>
-    <p class="app-subtitle">Treatment planning PWA v9 • categorized procedures • tooth/surface buttons • sequencing • alternatives • print plan</p>
+    <p class="app-subtitle">Treatment planning PWA • categorized procedures • tooth/surface buttons • sequencing • alternatives • print plan</p>
   </div>
   <button id="installHelp" class="ghost">Install / Offline</button>
 </header>
@@ -38,7 +38,6 @@
           <label>Plan title <input id="planTitle" placeholder="Option A: Ideal / comprehensive"></label>
           <label>Phase / sequence group
             <select id="phaseSelect">
-              <option value="">— blank / no phase —</option>
               <option>Phase 1 - Urgent / disease control</option>
               <option>Phase 2 - Definitive restorative</option>
               <option>Phase 3 - Replacement / prosthetic</option>
@@ -106,8 +105,8 @@
         </label>
         <label>Fee override <input id="feeOverride" type="number" min="0" step="0.01" placeholder="optional"></label>
         <label>Reason for treatment
-          <select id="reasonSelect">
-            <option value="">— blank / no reason selected —</option>
+          <select id="reasonSelect" multiple size="6">
+            <option></option>
             <option>Active caries</option>
             <option>Fracture / cracked tooth</option>
             <option>Defective restoration</option>
@@ -120,10 +119,11 @@
             <option>Patient request</option>
             <option>Monitor only</option>
           </select>
+          <span class="minihelp">Select one or more. Use the blank option, or clear selection when editing, to remove all reasons.</span>
         </label>
         <label>Reason for crown
-          <select id="crownReasonSelect">
-            <option value="">— blank / no crown reason —</option>
+          <select id="crownReasonSelect" multiple size="6">
+            <option></option>
             <option>Large existing restoration</option>
             <option>Crack line / cuspal fracture risk</option>
             <option>Endodontically treated tooth</option>
@@ -133,10 +133,11 @@
             <option>Replace defective crown</option>
             <option>Implant restoration</option>
           </select>
+          <span class="minihelp">Select one or more crown reasons. Clear selection to remove crown reasons.</span>
         </label>
         <label>Referral consideration
           <select id="referralSelect">
-            <option value="">— blank / no referral —</option>
+            <option></option>
             <option>Endodontist</option>
             <option>Periodontist</option>
             <option>Oral surgeon</option>
