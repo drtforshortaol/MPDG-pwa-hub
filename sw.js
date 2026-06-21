@@ -1,4 +1,4 @@
-const CACHE = "mpdg-hub-v2";
+const CACHE = "mpdg-hub-v3";
 const ASSETS = [
   "./",
   "./index.html",
