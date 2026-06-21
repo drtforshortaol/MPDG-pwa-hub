@@ -1,10 +1,11 @@
 const $ = id => document.getElementById(id);
 const activeCodes = SERVICE_CODES.filter(c => c.status === 'Active' && !/do not use/i.test(c.description || ''));
-const stateKey = 'dentalTreatmentPlanner.v6';
+const stateKey = 'dentalTreatmentPlanner.v6'; // keep same data key so existing saved plans remain available
 let state = loadState();
 let selectedTeeth = [];
 let selectedSurfaces = [];
 let selectedNonTooth = false;
+let editingItemId = null;
 
 const CATEGORY_ORDER = [
   'Diagnostic / Imaging', 'Preventive / Hygiene', 'Restorative / Crowns', 'Endodontics',
@@ -166,19 +167,19 @@ function renderSurfaces(){
 }
 function buildCategorySelectors(){
   const cats = [...new Set(activeCodes.map(categoryFor))].sort((a,b) => CATEGORY_ORDER.indexOf(a) - CATEGORY_ORDER.indexOf(b));
-  $('categorySelect').innerHTML = '<option value="">All categories</option>' + cats.map(c => `<option>${c}</option>`).join('');
+  $('categorySelect').innerHTML = '<option value="">— blank / all categories —</option>' + cats.map(c => `<option>${c}</option>`).join('');
   refreshSubcategories(); refreshProcedures();
 }
 function refreshSubcategories(){
   const cat = $('categorySelect').value;
   const subs = [...new Set(activeCodes.filter(c => !cat || categoryFor(c) === cat).map(subcategoryFor))].sort();
-  $('subcategorySelect').innerHTML = '<option value="">All subcategories</option>' + subs.map(s => `<option>${s}</option>`).join('');
+  $('subcategorySelect').innerHTML = '<option value="">— blank / all subcategories —</option>' + subs.map(s => `<option>${s}</option>`).join('');
 }
 function refreshProcedures(){
   const previous = $('procedureSelect').value;
   const q = ($('codeSearch')?.value || '').trim();
   const rows = filteredCodes().slice(0, 250);
-  const prompt = q ? `Select procedure from all matching results… (${rows.length} shown)` : 'Select procedure…';
+  const prompt = q ? `— blank / no procedure selected — (${rows.length} matching results shown)` : '— blank / no procedure selected —';
   $('procedureSelect').innerHTML = `<option value="">${prompt}</option>` + rows.map(c => `<option value="${c.serviceCode}">${c.adaCode || c.serviceCode} • ${c.description} • ${money(c.fee)}</option>`).join('');
   if (previous && rows.some(c => c.serviceCode === previous)) $('procedureSelect').value = previous;
   renderEntryStatus();
@@ -206,8 +207,10 @@ function bind(){
   $('procedureSelect').addEventListener('change', renderEntryStatus);
   $('codeSearch').addEventListener('input', refreshProcedures);
   $('addProcedure').onclick = () => addProcedure(false);
+  $('updateProcedure').onclick = updateCurrentEdit;
+  $('cancelEdit').onclick = cancelEdit;
   $('addMonitor').onclick = () => addProcedure(true);
-  $('clearEntry').onclick = clearEntryChoices;
+  $('clearEntry').onclick = () => { cancelEdit(false); clearEntryChoices(); };
   $('printPlan').onclick = () => { document.body.classList.remove('printing-compare'); window.print(); };
   if ($('printComparison')) $('printComparison').onclick = () => { document.body.classList.add('printing-compare'); document.querySelector('[data-tab="compare"]').click(); setTimeout(() => { window.print(); setTimeout(() => document.body.classList.remove('printing-compare'), 500); }, 50); };
   $('exportJson').onclick = exportJson;
@@ -242,6 +245,118 @@ function addProcedure(monitorOnly){
   };
   cp.items.push(item); save(); clearEntryChoices(); renderAll();
 }
+
+
+function findItemById(id){
+  return currentPlan().items.find(i => i.id === id);
+}
+
+function parseToothText(text){
+  if (!text || /^non-tooth$/i.test(text.trim())) return {nonTooth: !!text, teeth: []};
+  const teeth = String(text).match(/\d+/g)?.map(Number).filter(n => n >= 1 && n <= 32) || [];
+  return {nonTooth:false, teeth:[...new Set(teeth)].sort((a,b)=>a-b)};
+}
+
+function parseSurfaceText(text){
+  const raw = String(text || '');
+  const found = [];
+  let t = raw;
+  ['Root','Quad','Arch'].forEach(token => {
+    if (t.includes(token)){ found.push(token); t = t.replaceAll(token, ''); }
+  });
+  t.split('').forEach(ch => { if ('MODBLFIP'.includes(ch)) found.push(ch); });
+  return [...new Set(found)];
+}
+
+function setEditingMode(item){
+  editingItemId = item ? item.id : null;
+  const editing = !!editingItemId;
+  if ($('addProcedure')) $('addProcedure').style.display = editing ? 'none' : '';
+  if ($('addMonitor')) $('addMonitor').style.display = editing ? 'none' : '';
+  if ($('updateProcedure')) $('updateProcedure').style.display = editing ? '' : 'none';
+  if ($('cancelEdit')) $('cancelEdit').style.display = editing ? '' : 'none';
+  if ($('editStatus')){
+    $('editStatus').style.display = editing ? '' : 'none';
+    $('editStatus').innerHTML = editing ? `<b>Editing sequence ${item.seq}:</b> ${item.adaCode || item.serviceCode} — ${item.description}<br><span class="muted">Change phase, teeth, surfaces, procedure, fee, reason, referral, or notes, then tap Update selected procedure.</span>` : '';
+  }
+}
+
+function editItem(id){
+  const item = findItemById(id);
+  if (!item) return;
+  const toothInfo = parseToothText(item.tooth);
+  selectedNonTooth = toothInfo.nonTooth;
+  selectedTeeth = toothInfo.teeth;
+  selectedSurfaces = parseSurfaceText(item.surfaces);
+
+  $('phaseSelect').value = item.phase ?? '';
+  $('feeOverride').value = Number(item.fee || 0);
+  $('reasonSelect').value = item.reason || '';
+  $('crownReasonSelect').value = item.crownReason || '';
+  $('referralSelect').value = item.referral || '';
+  $('notes').value = item.notes || '';
+
+  const code = activeCodes.find(c => c.serviceCode === item.serviceCode);
+  $('codeSearch').value = '';
+  if (code){
+    $('categorySelect').value = categoryFor(code);
+    refreshSubcategories();
+    $('subcategorySelect').value = subcategoryFor(code);
+    refreshProcedures();
+    $('procedureSelect').value = code.serviceCode;
+  } else {
+    $('categorySelect').value = '';
+    refreshSubcategories();
+    $('subcategorySelect').value = '';
+    refreshProcedures();
+    $('procedureSelect').value = '';
+  }
+
+  setEditingMode(item);
+  renderTeeth();
+  renderSurfaces();
+  renderEntryStatus();
+  document.querySelector('section.panel.no-print:nth-of-type(4)')?.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function cancelEdit(render=true){
+  editingItemId = null;
+  setEditingMode(null);
+  if (render) renderEntryStatus();
+}
+
+function updateCurrentEdit(){
+  const cp = currentPlan();
+  const item = cp.items.find(i => i.id === editingItemId);
+  if (!item){ cancelEdit(); return; }
+  const chosenCode = selectedCode();
+  const code = chosenCode || {adaCode:item.adaCode, serviceCode:item.serviceCode, description:item.description, serviceType:item.serviceType, fee:item.fee};
+  if(!selectedNonTooth && selectedTeeth.length === 0 && item.serviceCode !== 'MONITOR'){
+    if(!confirm('No tooth selected. Save as non-tooth/general procedure?')) return;
+    selectedNonTooth = true;
+  }
+  const feeOverride = $('feeOverride').value;
+  Object.assign(item, {
+    phase: $('phaseSelect').value,
+    tooth: selectedToothText(),
+    surfaces: surfacesText(),
+    adaCode: code.adaCode,
+    serviceCode: code.serviceCode,
+    description: code.description,
+    serviceType: code.serviceType,
+    fee: feeOverride === '' ? Number(code.fee || 0) : Number(feeOverride),
+    reason: $('reasonSelect').value,
+    crownReason: $('crownReasonSelect').value,
+    referral: $('referralSelect').value,
+    notes: $('notes').value,
+    monitor: code.serviceCode === 'MONITOR' || $('phaseSelect').value === 'Monitor'
+  });
+  save();
+  cancelEdit(false);
+  clearEntryChoices();
+  renderAll();
+}
+
 
 function renderEntryStatus(){
   const code = selectedCode();
@@ -293,7 +408,7 @@ function renderTable(){
     return;
   }
   const body = groups.map(group => {
-    const rows = group.items.map(i => `<tr><td class="seqcell">${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}<br><span class="muted">${i.serviceType || ''}</span></td><td>${i.reason || ''}${i.crownReason ? `<br><b>Crown:</b> ${i.crownReason}` : ''}${i.referral ? `<br><b>Referral:</b> ${i.referral}` : ''}${i.notes ? `<br><span class="muted">${i.notes}</span>` : ''}</td><td class="money">${money(i.fee)}</td><td class="row-actions no-print"><button onclick="moveItem('${i.id}',-1)">↑</button><button onclick="moveItem('${i.id}',1)">↓</button><button onclick="removeItem('${i.id}')">×</button></td></tr>`).join('');
+    const rows = group.items.map(i => `<tr><td class="seqcell">${i.seq}</td><td>${i.phase}</td><td>${i.tooth || ''}</td><td>${i.surfaces || ''}</td><td><b>${i.adaCode}</b><br><span class="muted">${i.serviceCode}</span></td><td>${i.description}<br><span class="muted">${i.serviceType || ''}</span></td><td>${i.reason || ''}${i.crownReason ? `<br><b>Crown:</b> ${i.crownReason}` : ''}${i.referral ? `<br><b>Referral:</b> ${i.referral}` : ''}${i.notes ? `<br><span class="muted">${i.notes}</span>` : ''}</td><td class="money">${money(i.fee)}</td><td class="row-actions no-print"><button onclick="editItem('${i.id}')">Edit</button><button onclick="moveItem('${i.id}',-1)">↑</button><button onclick="moveItem('${i.id}',1)">↓</button><button onclick="removeItem('${i.id}')">×</button></td></tr>`).join('');
     return `<tr class="phase-heading"><th colspan="9">${group.phase}</th></tr>${rows}<tr class="phase-subtotal"><td colspan="7"><b>${group.phase} subtotal</b></td><td class="money"><b>${money(group.subtotal)}</b></td><td class="no-print"></td></tr>`;
   }).join('');
   const grandRow = `<tr class="grand-total-row"><td colspan="7"><b>Grand total</b></td><td class="money"><b>${money(grand)}</b></td><td class="no-print"></td></tr>`;
@@ -312,6 +427,7 @@ function removeItem(id){
   if (!item) return;
   if (!confirm(`Remove this procedure?\n\n${item.adaCode || item.serviceCode} — ${item.description}`)) return;
   cp.items = cp.items.filter(i => i.id !== id);
+  if (editingItemId === id) cancelEdit(false);
   resequenceItems(cp);
   save();
   renderAll();
@@ -333,6 +449,7 @@ function moveItem(id, direction){
 
 window.removeItem = removeItem;
 window.moveItem = moveItem;
+window.editItem = editItem;
 
 function renderLookup(){
   const q = $('lookupQ').value.toLowerCase(), type = $('lookupType').value, status = $('lookupStatus').value;

@@ -14,7 +14,7 @@
     <h1>Monterey Peninsula Dental Group</h1>
     <p class="provider-line">Dr. Glenn A. Takenaga DDS, MSc</p>
     <p>333 El Dorado Street, Monterey, CA 93940 • Phone 831-373-3068</p>
-    <p class="app-subtitle">Treatment planning PWA • categorized procedures • tooth/surface buttons • sequencing • alternatives • print plan</p>
+    <p class="app-subtitle">Treatment planning PWA v9 • categorized procedures • tooth/surface buttons • sequencing • alternatives • print plan</p>
   </div>
   <button id="installHelp" class="ghost">Install / Offline</button>
 </header>
@@ -38,6 +38,7 @@
           <label>Plan title <input id="planTitle" placeholder="Option A: Ideal / comprehensive"></label>
           <label>Phase / sequence group
             <select id="phaseSelect">
+              <option value="">— blank / no phase —</option>
               <option>Phase 1 - Urgent / disease control</option>
               <option>Phase 2 - Definitive restorative</option>
               <option>Phase 3 - Replacement / prosthetic</option>
@@ -106,7 +107,7 @@
         <label>Fee override <input id="feeOverride" type="number" min="0" step="0.01" placeholder="optional"></label>
         <label>Reason for treatment
           <select id="reasonSelect">
-            <option></option>
+            <option value="">— blank / no reason selected —</option>
             <option>Active caries</option>
             <option>Fracture / cracked tooth</option>
             <option>Defective restoration</option>
@@ -122,7 +123,7 @@
         </label>
         <label>Reason for crown
           <select id="crownReasonSelect">
-            <option></option>
+            <option value="">— blank / no crown reason —</option>
             <option>Large existing restoration</option>
             <option>Crack line / cuspal fracture risk</option>
             <option>Endodontically treated tooth</option>
@@ -135,7 +136,7 @@
         </label>
         <label>Referral consideration
           <select id="referralSelect">
-            <option></option>
+            <option value="">— blank / no referral —</option>
             <option>Endodontist</option>
             <option>Periodontist</option>
             <option>Oral surgeon</option>
@@ -147,8 +148,11 @@
         </label>
       </div>
       <label>Notes / monitoring record <textarea id="notes" placeholder="Watch area, radiographic finding, prognosis, patient preference, informed consent note…"></textarea></label>
+      <div id="editStatus" class="selected-procedure" style="display:none"></div>
       <div class="buttonrow">
         <button id="addProcedure" class="primary">Add to plan + clear choices</button>
+        <button id="updateProcedure" class="primary" style="display:none">Update selected procedure</button>
+        <button id="cancelEdit" style="display:none">Cancel edit</button>
         <button id="addMonitor">Add monitor-only row</button>
         <button id="clearEntry">Clear choices now</button>
         <button id="printPlan">Print treatment plan</button>

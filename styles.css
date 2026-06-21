@@ -16,3 +16,6 @@ button:disabled{opacity:.45;cursor:not-allowed}.selected-procedure{grid-column:1
 .phase-subtotal td,.phase-subtotal th{background:#f8fcfd;border-top:1px solid var(--line)}
 .grand-total-row td,.grand-total-row th{background:#eaf7f8;border-top:3px solid var(--brand);font-size:1.02rem}
 @media print{body.printing-compare #planner,body.printing-compare #codes,body.printing-compare #monitoring{display:none!important}body:not(.printing-compare) #compare,body:not(.printing-compare) #codes,body:not(.printing-compare) #monitoring{display:none!important}.phase-heading th{font-size:11px}.grand-total-row td{font-size:12px}}
+
+.editing-active{outline:2px solid var(--brand)}
+.row-actions button{min-width:32px}
