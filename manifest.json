@@ -1,9 +1,12 @@
 {
-  "name": "Monterey Peninsula Dental Group Treatment Planner",
-  "short_name": "MPDG Planner",
+  "name": "MPDG PWA Hub",
+  "short_name": "MPDG Hub",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f4fbfc",
   "theme_color": "#0b6b73",
-  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml"}]
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
 }
