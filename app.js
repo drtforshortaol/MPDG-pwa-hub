@@ -27,6 +27,43 @@ function codeSearchHaystack(c){ return [c.adaCode, c.serviceCode, c.displayAbbr,
 function selectedToothText(){ return selectedNonTooth ? 'Non-tooth' : selectedTeeth.join(', '); }
 function surfacesText(){ return selectedSurfaces.join(''); }
 
+
+function selectedValues(id){
+  const el = $(id);
+  if (!el) return [];
+  return Array.from(el.selectedOptions || [])
+    .map(o => o.value || o.textContent || '')
+    .map(v => String(v).trim())
+    .filter(Boolean);
+}
+
+function setMultiValues(id, values){
+  const el = $(id);
+  if (!el) return;
+  const arr = Array.isArray(values) ? values : (values ? [values] : []);
+  const wanted = new Set(arr.map(v => String(v).trim()).filter(Boolean));
+  Array.from(el.options || []).forEach(opt => {
+    const val = String(opt.value || opt.textContent || '').trim();
+    opt.selected = !!val && wanted.has(val);
+  });
+}
+
+function detailsText(value){
+  if (Array.isArray(value)) return value.filter(Boolean).join('; ');
+  return String(value || '').trim();
+}
+
+function detailLines(item){
+  const lines = [];
+  const reasons = detailsText(item.reason);
+  const crownReasons = detailsText(item.crownReason);
+  if (reasons) lines.push(`<b>Reason:</b> ${reasons}`);
+  if (crownReasons) lines.push(`<b>Crown:</b> ${crownReasons}`);
+  if (item.referral) lines.push(`<b>Referral:</b> ${item.referral}`);
+  if (item.notes) lines.push(`<b>Notes:</b> ${item.notes}`);
+  return lines.length ? lines.join('<br>') : '<span class="muted">—</span>';
+}
+
 function categoryFor(c){
   const st = (c.serviceType || '').toLowerCase();
   const d = (c.description || '').toLowerCase();
