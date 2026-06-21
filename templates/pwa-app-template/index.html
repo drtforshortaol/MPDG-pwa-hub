@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b6b73" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="APP SHORT NAME" />
+  <title>APP TITLE</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="app-header">
+    <!-- Change href to ../index.html if this app is inside a subfolder below the hub. -->
+    <a class="hub-return" href="../index.html">← Return to Hub</a>
+    <div class="title-block">
+      <p class="eyebrow">APP COLLECTION NAME</p>
+      <h1>APP TITLE</h1>
+      <p>Short description of what this app does.</p>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="panel">
+      <h2>Dropdown Section</h2>
+      <label for="mainSelect">Choose an item</label>
+      <select id="mainSelect"></select>
+      <div id="contentCard" class="content-card"></div>
+    </section>
+  </main>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
