@@ -1,226 +1,41 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b6b73">
-  <title>Monterey Peninsula Dental Group Treatment Planner</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b6b73" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="MPDG Hub" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>MPDG PWA Hub</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="hub-styles.css" />
 </head>
 <body>
-<header class="topbar">
-  <div>
-    <h1>Monterey Peninsula Dental Group</h1>
-    <p class="provider-line">Dr. Glenn A. Takenaga DDS, MSc</p>
-    <p>333 El Dorado Street, Monterey, CA 93940 • Phone 831-373-3068</p>
-    <p class="app-subtitle">Treatment planning PWA • categorized procedures • tooth/surface buttons • sequencing • alternatives • print plan</p>
-  </div>
-  <button id="installHelp" class="ghost">Install / Offline</button>
-</header>
+  <header class="hero">
+    <div class="hero__badge">MPDG</div>
+    <h1>MPDG PWA Hub</h1>
+    <p>One home screen for dental dropdown apps, treatment planning tools, and reference apps.</p>
+  </header>
 
-<nav class="tabs no-print">
-  <button data-tab="planner" class="active">Treatment Plan</button>
-  <button data-tab="codes">Code Lookup</button>
-  <button data-tab="compare">Compare Plans</button>
-  <button data-tab="monitoring">Monitoring / Referrals</button>
-</nav>
+  <main class="shell">
+    <section class="controls" aria-label="Hub controls">
+      <label for="groupSelect">Choose app group</label>
+      <select id="groupSelect"></select>
 
-<main>
-  <section id="planner" class="tab active">
-    <div class="grid two">
-      <section class="panel">
-        <h2>Patient / Plan</h2>
-        <div class="fields">
-          <label>Patient name <input id="patientName" placeholder="Patient"></label>
-          <label>Date <input id="planDate" type="date"></label>
-          <label>Plan option <select id="planSelect"></select></label>
-          <label>Plan title <input id="planTitle" placeholder="Option A: Ideal / comprehensive"></label>
-          <label>Phase / sequence group
-            <select id="phaseSelect">
-              <option>Phase 1 - Urgent / disease control</option>
-              <option>Phase 2 - Definitive restorative</option>
-              <option>Phase 3 - Replacement / prosthetic</option>
-              <option>Phase 4 - Maintenance / recall</option>
-              <option>Alternative / optional</option>
-              <option>Monitor</option>
-              <option>Referral</option>
-            </select>
-          </label>
-        </div>
-        <div class="minihelp">Choose the phase/sequence group before adding procedures. Each phase will print with its own subtotal, followed by the grand total.</div>
-        <div class="buttonrow no-print">
-          <button id="newPlan">New alternative</button>
-          <button id="duplicatePlan">Duplicate current</button>
-          <button id="deletePlan" class="danger">Delete current</button>
-        </div>
-      </section>
-    </div>
-
-    <section class="panel no-print">
-      <h2>1. Select teeth or non-tooth procedure</h2>
-      <div class="quickrow">
-        <button id="clearTeeth">Clear teeth</button>
-        <button data-range="1-8">1–8</button>
-        <button data-range="9-16">9–16</button>
-        <button data-range="32-25">32–25</button>
-        <button data-range="24-17">24–17</button>
-        <button data-arch="upper">Upper 1–16</button>
-        <button data-arch="lower">Lower 17–32</button>
-        <button data-arch="all">All 1–32</button>
-        <button id="nonToothBtn">Non-tooth / general</button>
-      </div>
-      <div class="toothgroups" id="toothChart"></div>
-      <div class="minihelp">Grouped for mobile: upper right 1–8, upper left 9–16, lower right 32–25 on the left, lower left 24–17 on the right. Tap one or multiple teeth. Use non-tooth/general for exams, images, hygiene, dentures, sedation, sleep appliance, consults, lab, global fees, or referrals.</div>
+      <label for="searchInput">Search apps</label>
+      <input id="searchInput" type="search" placeholder="Search treatment, fee, CDT..." autocomplete="off" />
     </section>
 
-    <section class="panel no-print">
-      <h2>2. Select surfaces</h2>
-      <div class="surface-tools">
-        <button id="clearSurfaces">Clear surfaces</button>
-        <button data-surface-set="MOD">MOD</button>
-        <button data-surface-set="MOB">MOB</button>
-        <button data-surface-set="DOB">DOB</button>
-        <button data-surface-set="MODB">MODB</button>
-      </div>
-      <div class="surfacegroups" id="surfaceBar"></div>
-      <div class="minihelp">Surfaces are optional. Leave blank for crowns, implants, dentures, perio, endo, or non-tooth items unless you want to record surfaces.</div>
-    </section>
+    <section id="groupIntro" class="group-intro"></section>
+    <section id="appGrid" class="app-grid" aria-live="polite"></section>
+  </main>
 
-    <section class="panel no-print">
-      <h2>3. Select procedure and details</h2>
-      <div class="fields addproc">
-        <label>Category
-          <select id="categorySelect"></select>
-        </label>
-        <label>Subcategory
-          <select id="subcategorySelect"></select>
-        </label>
-        <label>Procedure
-          <select id="procedureSelect"></select>
-        </label>
-        <div id="selectedProcedureSummary" class="selected-procedure">No procedure selected yet.</div>
-        <label>Search all procedures
-          <input id="codeSearch" placeholder="crown, D2740, implant, SRP… searches all active procedures">
-        </label>
-        <label>Fee override <input id="feeOverride" type="number" min="0" step="0.01" placeholder="optional"></label>
-        <label>Reason for treatment
-          <select id="reasonSelect" multiple size="6">
-            <option></option>
-            <option>Active caries</option>
-            <option>Fracture / cracked tooth</option>
-            <option>Defective restoration</option>
-            <option>Pain / symptoms</option>
-            <option>Endodontic infection</option>
-            <option>Periodontal disease</option>
-            <option>Missing tooth / function</option>
-            <option>Esthetics</option>
-            <option>Preventive / maintenance</option>
-            <option>Patient request</option>
-            <option>Monitor only</option>
-          </select>
-          <span class="minihelp">Select one or more. Use the blank option, or clear selection when editing, to remove all reasons.</span>
-        </label>
-        <label>Reason for crown
-          <select id="crownReasonSelect" multiple size="6">
-            <option></option>
-            <option>Large existing restoration</option>
-            <option>Crack line / cuspal fracture risk</option>
-            <option>Endodontically treated tooth</option>
-            <option>Insufficient remaining tooth structure</option>
-            <option>Fractured cusp / undermined cusp</option>
-            <option>Full coverage needed for occlusion</option>
-            <option>Replace defective crown</option>
-            <option>Implant restoration</option>
-          </select>
-          <span class="minihelp">Select one or more crown reasons. Clear selection to remove crown reasons.</span>
-        </label>
-        <label>Referral consideration
-          <select id="referralSelect">
-            <option></option>
-            <option>Endodontist</option>
-            <option>Periodontist</option>
-            <option>Oral surgeon</option>
-            <option>Orthodontist</option>
-            <option>Prosthodontist</option>
-            <option>Sleep physician / MD</option>
-            <option>CBCT / imaging center</option>
-          </select>
-        </label>
-      </div>
-      <label>Notes / monitoring record <textarea id="notes" placeholder="Watch area, radiographic finding, prognosis, patient preference, informed consent note…"></textarea></label>
-      <div id="editStatus" class="selected-procedure" style="display:none"></div>
-      <div class="buttonrow">
-        <button id="addProcedure" class="primary">Add to plan + clear choices</button>
-        <button id="updateProcedure" class="primary" style="display:none">Update selected procedure</button>
-        <button id="cancelEdit" style="display:none">Cancel edit</button>
-        <button id="addMonitor">Add monitor-only row</button>
-        <button id="clearEntry">Clear choices now</button>
-        <button id="printPlan">Print treatment plan</button>
-        <button id="exportJson">Export JSON</button>
-        <button id="clearAll" class="danger">Reset app data</button>
-      </div>
-    </section>
+  <footer class="footer">
+    <p>Offline-ready starter hub. Edit <strong>apps-config.js</strong> to add or rearrange apps.</p>
+  </footer>
 
-    <section class="panel print-card">
-      <div class="print-header">
-        <div>
-          <div class="practice-print-heading">
-            <b>Monterey Peninsula Dental Group</b><br>
-            Dr. Glenn A. Takenaga DDS, MSc<br>
-            333 El Dorado Street, Monterey, CA 93940 • Phone 831-373-3068
-          </div>
-          <h2 id="printPlanTitle">Treatment Plan</h2>
-          <p id="printPatientLine"></p>
-        </div>
-        <div class="print-total" id="printTotal"></div>
-      </div>
-      <div id="planTableWrap"></div>
-      <div class="patient-note">
-        <b>Note:</b> This is a planning/communication draft. Verify codes, fees, coverage, diagnosis, informed consent, and clinical appropriateness before patient presentation.
-      </div>
-    </section>
-  </section>
-
-  <section id="codes" class="tab">
-    <section class="panel">
-      <h2>Code Lookup</h2>
-      <div class="fields">
-        <label>Search <input id="lookupQ" placeholder="code, ADA, description…"></label>
-        <label>Service type <select id="lookupType"><option value="">All types</option></select></label>
-        <label>Status <select id="lookupStatus"><option value="Active" selected>Active only</option><option value="Inactive">Inactive only</option><option value="">All</option></select></label>
-      </div>
-      <div id="lookupList"></div>
-    </section>
-  </section>
-
-  <section id="compare" class="tab">
-    <section class="panel compare-print-card">
-      <div class="compare-print-header">
-        <div class="practice-print-heading">
-          <b>Monterey Peninsula Dental Group</b><br>
-          Dr. Glenn A. Takenaga DDS, MSc<br>
-          333 El Dorado Street, Monterey, CA 93940 • Phone 831-373-3068
-        </div>
-        <h2>Compare Alternative Treatment Plans</h2>
-        <p id="comparePatientLine" class="muted"></p>
-      </div>
-      <div class="buttonrow no-print">
-        <button id="printComparison" class="primary">Print comparison treatment plans</button>
-      </div>
-      <div id="compareBox"></div>
-    </section>
-  </section>
-
-  <section id="monitoring" class="tab">
-    <section class="panel">
-      <h2>Monitoring / Referral Summary</h2>
-      <div id="monitorBox"></div>
-    </section>
-  </section>
-</main>
-
-<script src="codes.js"></script>
-<script src="app.js"></script>
+  <script src="apps-config.js"></script>
+  <script src="hub-app.js"></script>
 </body>
 </html>
