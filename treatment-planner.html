@@ -7,8 +7,31 @@
   <title>Monterey Peninsula Dental Group Treatment Planner</title>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .hub-return-bar {
+      padding: 10px 14px;
+      background: #064e57;
+    }
+    .hub-return {
+      display: inline-flex;
+      align-items: center;
+      min-height: 42px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      text-decoration: none;
+      font-weight: 800;
+    }
+    @media print {
+      .hub-return-bar { display: none !important; }
+    }
+  </style>
 </head>
 <body>
+<div class="hub-return-bar no-print">
+  <a class="hub-return" href="index.html">← MPDG Hub</a>
+</div>
 <header class="topbar">
   <div>
     <h1>Monterey Peninsula Dental Group</h1>
